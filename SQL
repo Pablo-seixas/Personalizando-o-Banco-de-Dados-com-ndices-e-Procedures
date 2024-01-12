@@ -1,0 +1,55 @@
+-- Tabela para armazenar informações sobre departamentos
+CREATE TABLE departamentos (
+    id_departamento INT PRIMARY KEY,
+    nome_departamento VARCHAR(255),
+    cidade_departamento VARCHAR(255)
+);
+
+-- Tabela para armazenar informações sobre empregados
+CREATE TABLE empregados (
+    id_empregado INT PRIMARY KEY,
+    nome_empregado VARCHAR(255),
+    cargo_empregado VARCHAR(255),
+    id_departamento INT,
+    FOREIGN KEY (id_departamento) REFERENCES departamentos(id_departamento)
+);
+
+-- Adicionando coluna 'id_departamento' à tabela 'clientes' para associar empregados a departamentos
+ALTER TABLE clientes
+ADD COLUMN id_departamento INT,
+ADD FOREIGN KEY (id_departamento) REFERENCES departamentos(id_departamento);
+
+-- Atualizando a stored procedure para obter informações de um cliente por e-mail
+DELIMITER //
+CREATE PROCEDURE obter_cliente_por_email(IN email_cliente VARCHAR(255))
+BEGIN
+    SELECT clientes.*, departamentos.nome_departamento
+    FROM clientes
+    LEFT JOIN departamentos ON clientes.id_departamento = departamentos.id_departamento
+    WHERE clientes.email = email_cliente;
+END //
+DELIMITER ;
+
+-- Adicionando índice na coluna 'cidade_departamento' da tabela 'departamentos'
+CREATE INDEX idx_cidade_departamento ON departamentos (cidade_departamento);
+
+-- Adicionando stored procedure para obter número de pessoas por departamento
+DELIMITER //
+CREATE PROCEDURE numero_pessoas_por_departamento()
+BEGIN
+    SELECT nome_departamento, COUNT(*) as total_pessoas
+    FROM empregados
+    JOIN departamentos ON empregados.id_departamento = departamentos.id_departamento
+    GROUP BY empregados.id_departamento;
+END //
+DELIMITER ;
+
+-- Adicionando stored procedure para obter departamentos por cidade
+DELIMITER //
+CREATE PROCEDURE departamentos_por_cidade(IN cidade VARCHAR(255))
+BEGIN
+    SELECT *
+    FROM departamentos
+    WHERE cidade_departamento = cidade;
+END //
+DELIMITER ;
